@@ -2,16 +2,10 @@
 /////////////////////////////client/////////////////////////////
 /////////////////////////////client/////////////////////////////
 /////////////////////////////client/////////////////////////////
-    let url_name = 'GAFAM';
 	const test_url_list = `https://www.google.com
 https://www.amazon.co.jp
 https://www.apple.com/jp
 https://www.microsoft.com/ja-jp
-https://www.facebook.com`;
-    let url_list = `https://www.google.com
-https://www.amazon.com
-https://www.apple.com
-https://www.microsoft.com
 https://www.facebook.com`;
     let open_volume = 1;
     let url_list_lines = [];
@@ -56,12 +50,163 @@ https://www.facebook.com`;
 
 
 
+{
+/////////////////////////////server_express.js/////////////////////////////
+/////////////////////////////server_express.js/////////////////////////////
+/////////////////////////////server_express.js/////////////////////////////
+
+/////////////////////////////AI/////////////////////////////
+// 以下のコードを以下のルールで書き換えて
+// pop_up_url => app3
+// url_name => app3_title TEXT not nullで1文字以上100文字以下
+// url_list => app3_base64 TEXT not null 500kb以下
+/////////////////////////////AI/////////////////////////////
+
+//  const db_for_app3 = new sqlite('app3.db');
+//  
+//  const initializeDatabase_app3 = () => {
+//      db_for_app3.exec('DROP TABLE IF EXISTS app3');
+//      db_for_app3.exec(`
+//          CREATE TABLE app3 (
+//              id INTEGER PRIMARY KEY AUTOINCREMENT,
+//              uid TEXT NOT NULL CHECK(length(uid) >= 1 AND length(uid) <= 3000),
+//              app3_title TEXT NOT NULL CHECK(length(app3_title) >= 1 AND length(app3_title) <= 100),
+//              app3_base64 TEXT NOT NULL CHECK(length(app3_base64) <= 500000),
+//              created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//              updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//          );
+//      `);
+//  };
+//  initializeDatabase_app3();
+//  
+//  app.post('/app3/init-database', (req, res) => {
+//      const { password } = req.body;
+//  
+//      if (password === 'init') {
+//          try {
+//              initializeDatabase_app3();
+//              res.status(200).json({ message: 'Database initialized successfully.' });
+//          } catch (error) {
+//              res.status(500).json({ error: 'Failed to initialize database.' });
+//          }
+//      } else {
+//          res.status(403).json({ error: 'Unauthorized: Invalid password.' });
+//      }
+//  });
+//  
+//  app.post('/app3/create', (req, res) => {
+//      const { uid, app3_title, app3_base64 } = req.body;
+//  
+//      if (typeof uid !== 'string' || uid.length < 1 || uid.length > 3000) {
+//          return res.status(400).json({ error: 'Invalid uid. It must be a string between 1 and 3000 characters.' });
+//      }
+//  
+//      if (typeof app3_title !== 'string' || app3_title.length < 1 || app3_title.length > 100) {
+//          return res.status(400).json({ error: 'Invalid app3_title. It must be a string between 1 and 100 characters.' });
+//      }
+//  
+//      if (typeof app3_base64 !== 'string' || app3_base64.length > 500000) {
+//          return res.status(400).json({ error: 'Invalid app3_base64. It must be a string up to 500kb in size.' });
+//      }
+//  
+//      const stmt = db_for_app3.prepare('INSERT INTO app3 (uid, app3_title, app3_base64) VALUES (?, ?, ?)');
+//      const result = stmt.run(uid, app3_title, app3_base64);
+//  
+//      return res.status(201).json({
+//          id: result.lastInsertRowid,
+//          uid,
+//          app3_title,
+//          app3_base64,
+//          created: new Date().toISOString(),
+//          updated: new Date().toISOString()
+//      });
+//  });
+//  
+//  app.post('/app3/read', (req, res) => {
+//      const { uid } = req.body;
+//  
+//      try {
+//          const stmt_all = db_for_app3.prepare('SELECT * FROM app3');
+//          const all_json = stmt_all.all();
+//  
+//          if (uid) {
+//              const stmt_uid = db_for_app3.prepare('SELECT * FROM app3 WHERE uid = ?');
+//              const uid_json = stmt_uid.all(uid);
+//              res.status(200).json({ uid_json, all_json });
+//          } else {
+//              res.status(200).json({ all_json });
+//          }
+//      } catch (error) {
+//          res.status(500).json({ error: 'Failed to retrieve records.' });
+//      }
+//  });
+//  
+//  app.post('/app3/update', (req, res) => {
+//      const { id, uid, app3_title, app3_base64 } = req.body;
+//  
+//      if (typeof id !== 'number' || typeof uid !== 'string' || uid.length < 1 || uid.length > 3000 ||
+//          typeof app3_title !== 'string' || app3_title.length < 1 || app3_title.length > 100 ||
+//          typeof app3_base64 !== 'string' || app3_base64.length > 500000) {
+//          return res.status(400).json({ error: 'Invalid input.' });
+//      }
+//  
+//      const stmt = db_for_app3.prepare('UPDATE app3 SET app3_title = ?, app3_base64 = ?, updated = CURRENT_TIMESTAMP WHERE id = ? AND uid = ?');
+//      const result = stmt.run(app3_title, app3_base64, id, uid);
+//  
+//      if (result.changes > 0) {
+//          res.status(200).json({ message: 'Record updated successfully.' });
+//      } else {
+//          res.status(404).json({ error: 'Record not found or UID mismatch.' });
+//      }
+//  });
+//  
+//  app.post('/app3/delete', (req, res) => {
+//      const { id, uid } = req.body;
+//  
+//      if (typeof id !== 'number' || typeof uid !== 'string') {
+//          return res.status(400).json({ error: 'Invalid input.' });
+//      }
+//  
+//      const stmt = db_for_app3.prepare('DELETE FROM app3 WHERE id = ? AND uid = ?');
+//      const result = stmt.run(id, uid);
+//  
+//      if (result.changes > 0) {
+//          res.status(200).json({ message: 'Record deleted successfully.' });
+//      } else {
+//          res.status(404).json({ error: 'Record not found or UID mismatch.' });
+//      }
+//  });
 
 
+/////////////////////////////server_express.js/////////////////////////////
+/////////////////////////////server_express.js/////////////////////////////
+/////////////////////////////server_express.js/////////////////////////////
+};
+
+
+
 /////////////////////////////server/////////////////////////////
 /////////////////////////////server/////////////////////////////
 /////////////////////////////server/////////////////////////////
+let url_name = 'GAFAM';
+let url_list = `https://www.google.com
+https://www.amazon.com
+https://www.apple.com
+https://www.microsoft.com
+https://www.facebook.com`;
+let convert_data_0 = null;
+let convert_data_1 = null;
+// convert_dataの引数の初期値をurl_name, url_listに設定
+function convert_data(data_0 = url_name, data_1 = url_list) {
+	convert_data_0 = data_0;
+	convert_data_1 = data_1;
+}
 const service_name = 'Pop Up URL';
+
+
+
+
+
 import { onMount } from 'svelte';
     const firebase_config = {
         apiKey: "AIzaSyBcOlIDP2KWbJuKM0WeMHNp-WvjTVfLt9Y",
@@ -132,6 +277,7 @@ import { onMount } from 'svelte';
 
     async function create_record() {
         try {
+			convert_data(url_name, url_list);
             const response = await fetch('https://cotton-concrete-catsup.glitch.me/pop_up_url/create', {
                 method: 'POST',
                 headers: {
@@ -139,8 +285,8 @@ import { onMount } from 'svelte';
                 },
                 body: JSON.stringify({ 
 					uid: uid,
-					url_name: url_name,
-					url_list: url_list,
+					url_name: convert_data_0,
+					url_list: convert_data_1,
 				})
             });
             const data = await response.json();
@@ -153,6 +299,7 @@ import { onMount } from 'svelte';
 
     async function update_record(id) {
         try {
+			convert_data(url_name, url_list);
 			// confirmしてから実行。yes出ない場合は何もしない
 			if (confirm('更新しますか？')) {} else {
 				return;
@@ -165,8 +312,8 @@ import { onMount } from 'svelte';
                 body: JSON.stringify({
 					id: id,
 					uid: uid,
-					url_name: url_name,
-					url_list: url_list,
+					url_name: convert_data_0,
+					url_list: convert_data_1,
 				})
             });
             const data = await response.json();
