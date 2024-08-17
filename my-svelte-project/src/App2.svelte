@@ -2,45 +2,63 @@
 /////////////////////////////client/////////////////////////////
 /////////////////////////////client/////////////////////////////
 /////////////////////////////client/////////////////////////////
+let canvas;
+    let ctx;
+    let base64Image;
+    let drawing = false;
+    const undoStack = [];
 
+    function startDrawing(e) {
+        drawing = true;
+        saveState();
+        ctx.beginPath(); // Begin a new path to avoid connecting lines
+    }
 
+    function stopDrawing() {
+        drawing = false;
+        ctx.beginPath(); // Begin a new path to avoid connecting lines
+    }
 
-	const test_url_list = `https://www.google.com
-https://www.amazon.co.jp
-https://www.apple.com/jp
-https://www.microsoft.com/ja-jp
-https://www.facebook.com`;
-    let open_volume = 1;
-    let url_list_lines = [];
-    let options = [];
-    let urls = [];
-    let is_editing_url_name = false;
-    // Reactive updates
-    $: {
-        url_list_lines = url_list.split('\n').filter(line => line.trim() !== '');
-        if (url_list_lines.length > 100) {
-            error_message = 'URLリストは100行までです。';
-        } else {
-            error_message = '';
+    function draw(e) {
+        if (!drawing) return;
+
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = 'black';
+
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+
+    function saveState() {
+        undoStack.push(canvas.toDataURL());
+    }
+
+    function undo() {
+        if (undoStack.length > 0) {
+            const previousState = undoStack.pop();
+            const img = new Image();
+            img.src = previousState;
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
         }
-        options = Array.from({ length: url_list_lines.length }, (_, i) => i + 1);
-        if (options.length > 0) {
-            open_volume = Math.max(open_volume, options[options.length - 1]);
-        }
     }
-    function service_tab_open(url) {
-        window.open(url, '_blank');
+
+    function exportImage() {
+        base64Image = canvas.toDataURL('image/png');
+        alert('Base64 Image Data URL has been saved to the global variable `base64Image`.');
+        console.log(base64Image); // Optional: View the Base64 string in the console
     }
-    async function service_exe() {
-        urls = url_list_lines.slice(0, open_volume);
-        urls.forEach(url => service_tab_open(url));
-    }
-    function service_toggle_edit_url_name() {
-        is_editing_url_name = !is_editing_url_name;
-    }
-    function service_update_url_name() {
-        is_editing_url_name = false;
-    }
+
+
 /////////////////////////////client/////////////////////////////
 /////////////////////////////client/////////////////////////////
 /////////////////////////////client/////////////////////////////
@@ -345,6 +363,23 @@ import { onMount } from 'svelte';
     }
 
     onMount(() => {
+		canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mousemove', draw);
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling on touch devices
+            startDrawing(e.touches[0]);
+        });
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            draw(e.touches[0]);
+        });
+
         check_login();
 		fetch_data();
     });
@@ -376,6 +411,9 @@ import { onMount } from 'svelte';
     textarea {
         width: 100%;
         height: 50vh;
+    }
+	canvas {
+        border: 1px solid black;
     }
 </style>
 
@@ -422,19 +460,13 @@ import { onMount } from 'svelte';
 		</div>
 	</div>
 
-		<div class="right-column">
-            {#if is_editing_url_name}
-                <input type="text" bind:value={url_name} />
-                <button on:click={service_update_url_name}>Update</button>
-            {:else}
-                <button on:click={service_toggle_edit_url_name}>Change List Name</button>
-            {/if}
-			<!-- test_url_listを代入するボタン -->
-			<button on:click={() => url_list = test_url_list}>Test URL List</button>
-            <label for="open_volume">Open Volume:</label>
-            <input type="number" id="open_volume" bind:value={open_volume} min="1" max={options.length} />
-            <textarea bind:value={url_list} placeholder="URLリストを入力してください"></textarea>
-            <button on:click={service_exe}>実行</button>
+
+	<div class="right-column">
+
+		<button on:click={exportImage}>Export</button>
+<button on:click={undo}>Undo</button>
+<canvas id="canvas" width="700vw" height="700vh"></canvas>
+
         </div>
 </div>
 
