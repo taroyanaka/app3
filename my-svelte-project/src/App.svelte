@@ -22,7 +22,7 @@
         convert_data_0 = data_0;
         convert_data_1 = data_1;
     }
-    const service_name = 'Pop Up URL';
+    const service_name = 'ez_draw';
     
     // pop_up_url => ez_draw
     
@@ -311,7 +311,7 @@
 
 
 <div class="header">
-	<h1>{service_name}</h1>
+	<!-- <h1>{service_name}</h1> -->
 	{#if user}
 		<button on:click={sign_out}>Logout</button>
 	{:else}
