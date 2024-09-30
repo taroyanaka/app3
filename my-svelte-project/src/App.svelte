@@ -80,11 +80,27 @@
                 alert('Sign out failed. ' + error.message);
             });
         }
+
+        async function init_database() {
+            try {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app3/init-database', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: 'init' })
+                });
+                const data = await response.json();
+                console.log('Database initialized:', data);
+            } catch (error) {
+                console.error('Error initializing database:', error);
+            }
+        }
     
         async function fetch_data() {
             try {
                 console.log('fetch_data');
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/read', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app3/read', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -101,7 +117,7 @@
         async function create_record() {
             try {
                 convert_data(image_name, base64Image);
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/create', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app3/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -127,7 +143,7 @@
                 if (confirm('更新しますか？')) {} else {
                     return;
                 }
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/update', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app3/update', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -149,7 +165,7 @@
     
         async function delete_record(id) {
             try {
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/delete', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app3/delete', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

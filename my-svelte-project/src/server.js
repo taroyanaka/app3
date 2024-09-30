@@ -1,14 +1,14 @@
-// 以下ルールで全てのカラムを変更(テーブル名はapp5でエンドポイント名は変更不要)
-// app5_title => image_name (validationルールは1文字以上100文字以下、空白は不可)
-// app5_text => base64Image (base64で1kb以上で128kb以下)
+// 以下ルールで全てのカラムを変更(テーブル名はapp3でエンドポイント名は変更不要)
+// app3_title => image_name (validationルールは1文字以上100文字以下、空白は不可)
+// app3_text => base64Image (base64で1kb以上で128kb以下)
 
 
-const db_for_app5 = new sqlite('app5.db');
+const db_for_app3 = new sqlite('app3.db');
 
-const initializeDatabase_app5 = () => {
-    db_for_app5.exec('DROP TABLE IF EXISTS app5');
-    db_for_app5.exec(`
-        CREATE TABLE app5 (
+const initializeDatabase_app3 = () => {
+    db_for_app3.exec('DROP TABLE IF EXISTS app3');
+    db_for_app3.exec(`
+        CREATE TABLE app3 (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             uid TEXT NOT NULL CHECK(length(uid) = 64), -- SHA-256 produces a 64-character hex string
             image_name TEXT NOT NULL CHECK(length(image_name) >= 1 AND length(image_name) <= 100 AND image_name NOT LIKE '% %'), -- No spaces allowed
@@ -18,14 +18,14 @@ const initializeDatabase_app5 = () => {
         );
     `);
 };
-// initializeDatabase_app5();
+// initializeDatabase_app3();
 
-app.post('/app5/init-database', (req, res) => {
+app.post('/app3/init-database', (req, res) => {
     const { password } = req.body;
 
     if (password === 'init') {
         try {
-            initializeDatabase_app5();
+            initializeDatabase_app3();
             res.status(200).json({ message: 'Database initialized successfully.' });
         } catch (error) {
             res.status(500).json({ error: 'Failed to initialize database.' });
@@ -35,7 +35,7 @@ app.post('/app5/init-database', (req, res) => {
     }
 });
 
-app.post('/app5/create', (req, res) => {
+app.post('/app3/create', (req, res) => {
     const hashUid = (uid) => {
         return crypto.createHash('sha256').update(uid).digest('hex');
     };
@@ -59,7 +59,7 @@ app.post('/app5/create', (req, res) => {
 
     const hashedUid = hashUid(uid);
 
-    const stmt = db_for_app5.prepare('INSERT INTO app5 (uid, image_name, base64Image) VALUES (?, ?, ?)');
+    const stmt = db_for_app3.prepare('INSERT INTO app3 (uid, image_name, base64Image) VALUES (?, ?, ?)');
     const result = stmt.run(hashedUid, image_name, base64Image);
 
     return res.status(201).json({
@@ -72,7 +72,7 @@ app.post('/app5/create', (req, res) => {
     });
 });
 
-app.post('/app5/read', (req, res) => {
+app.post('/app3/read', (req, res) => {
     const hashUid = (uid) => {
         return crypto.createHash('sha256').update(uid).digest('hex');
     };
@@ -80,12 +80,12 @@ app.post('/app5/read', (req, res) => {
     const { uid } = req.body;
 
     try {
-        const stmt_all = db_for_app5.prepare('SELECT * FROM app5');
+        const stmt_all = db_for_app3.prepare('SELECT * FROM app3');
         const all_json = stmt_all.all();
 
         if (uid) {
             const hashedUid = hashUid(uid);
-            const stmt_uid = db_for_app5.prepare('SELECT * FROM app5 WHERE uid = ?');
+            const stmt_uid = db_for_app3.prepare('SELECT * FROM app3 WHERE uid = ?');
             const uid_json = stmt_uid.all(hashedUid);
             res.status(200).json({ uid_json, all_json });
         } else {
@@ -96,7 +96,7 @@ app.post('/app5/read', (req, res) => {
     }
 });
 
-app.post('/app5/update', (req, res) => {
+app.post('/app3/update', (req, res) => {
     const hashUid = (uid) => {
         return crypto.createHash('sha256').update(uid).digest('hex');
     };
@@ -112,7 +112,7 @@ app.post('/app5/update', (req, res) => {
 
     const hashedUid = hashUid(uid);
 
-    const stmt = db_for_app5.prepare('UPDATE app5 SET image_name = ?, base64Image = ?, updated = CURRENT_TIMESTAMP WHERE id = ? AND uid = ?');
+    const stmt = db_for_app3.prepare('UPDATE app3 SET image_name = ?, base64Image = ?, updated = CURRENT_TIMESTAMP WHERE id = ? AND uid = ?');
     const result = stmt.run(image_name, base64Image, id, hashedUid);
 
     if (result.changes > 0) {
@@ -122,7 +122,7 @@ app.post('/app5/update', (req, res) => {
     }
 });
 
-app.post('/app5/delete', (req, res) => {
+app.post('/app3/delete', (req, res) => {
     const hashUid = (uid) => {
         return crypto.createHash('sha256').update(uid).digest('hex');
     };
@@ -135,7 +135,7 @@ app.post('/app5/delete', (req, res) => {
 
     const hashedUid = hashUid(uid);
 
-    const stmt = db_for_app5.prepare('DELETE FROM app5 WHERE id = ? AND uid = ?');
+    const stmt = db_for_app3.prepare('DELETE FROM app3 WHERE id = ? AND uid = ?');
     const result = stmt.run(id, hashedUid);
 
     if (result.changes > 0) {
