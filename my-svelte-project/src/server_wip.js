@@ -1,6 +1,6 @@
-以下ルールで全てのカラムを変更(テーブル名はapp5でエンドポイント名は変更不要)
-app5_title => image_name (validationルールは1文字以上100文字以下、空白は不可)
-app5_text => base64Image (base64で1kb以上で128kb以下)
+// 以下ルールで全てのカラムを変更(テーブル名はapp5でエンドポイント名は変更不要)
+// app5_title => image_name (validationルールは1文字以上100文字以下、空白は不可)
+// app5_text => base64Image (base64で1kb以上で128kb以下)
 
 
 const db_for_app5 = new sqlite('app5.db');
@@ -11,8 +11,8 @@ const initializeDatabase_app5 = () => {
         CREATE TABLE app5 (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             uid TEXT NOT NULL CHECK(length(uid) = 64), -- SHA-256 produces a 64-character hex string
-            app5_title TEXT NOT NULL CHECK(length(app5_title) >= 1 AND length(app5_title) <= 100),
-            app5_text TEXT NULL CHECK(length(app5_text) >= 1 AND length(app5_text) <= 1000),
+            image_name TEXT NOT NULL CHECK(length(image_name) >= 1 AND length(image_name) <= 100 AND image_name NOT LIKE '% %'), -- No spaces allowed
+            base64Image TEXT NOT NULL CHECK(length(base64Image) >= 1024 AND length(base64Image) <= 131072), -- 1KB to 128KB
             created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -40,30 +40,33 @@ app.post('/app5/create', (req, res) => {
         return crypto.createHash('sha256').update(uid).digest('hex');
     };
 
-    const { uid, app5_title, app5_text } = req.body;
+    const { uid, image_name, base64Image } = req.body;
 
+    // Validation for uid
     if (typeof uid !== 'string' || uid.length < 1 || uid.length > 50) {
         return res.status(400).json({ error: 'Invalid uid. It must be a string between 1 and 50 characters.' });
     }
 
-    if (typeof app5_title !== 'string' || app5_title.length < 1 || app5_title.length > 100) {
-        return res.status(400).json({ error: 'Invalid app5_title. It must be a string between 1 and 100 characters.' });
+    // Validation for image_name
+    if (typeof image_name !== 'string' || image_name.length < 1 || image_name.length > 100 || /\s/.test(image_name)) {
+        return res.status(400).json({ error: 'Invalid image_name. It must be a string between 1 and 100 characters without spaces.' });
     }
 
-    if (app5_text && (typeof app5_text !== 'string' || app5_text.length < 1 || app5_text.length > 1000)) {
-        return res.status(400).json({ error: 'Invalid app5_text. It must be a string between 1 and 1000 characters.' });
+    // Validation for base64Image
+    if (typeof base64Image !== 'string' || base64Image.length < 1024 || base64Image.length > 131072) {
+        return res.status(400).json({ error: 'Invalid base64Image. It must be a base64 string between 1KB and 128KB.' });
     }
 
     const hashedUid = hashUid(uid);
 
-    const stmt = db_for_app5.prepare('INSERT INTO app5 (uid, app5_title, app5_text) VALUES (?, ?, ?)');
-    const result = stmt.run(hashedUid, app5_title, app5_text || null);
+    const stmt = db_for_app5.prepare('INSERT INTO app5 (uid, image_name, base64Image) VALUES (?, ?, ?)');
+    const result = stmt.run(hashedUid, image_name, base64Image);
 
     return res.status(201).json({
         id: result.lastInsertRowid,
         uid: hashedUid,
-        app5_title,
-        app5_text,
+        image_name,
+        base64Image,
         created: new Date().toISOString(),
         updated: new Date().toISOString()
     });
@@ -98,18 +101,19 @@ app.post('/app5/update', (req, res) => {
         return crypto.createHash('sha256').update(uid).digest('hex');
     };
 
-    const { id, uid, app5_title, app5_text } = req.body;
+    const { id, uid, image_name, base64Image } = req.body;
 
+    // Validation
     if (typeof id !== 'number' || typeof uid !== 'string' || uid.length < 1 || uid.length > 50 ||
-        typeof app5_title !== 'string' || app5_title.length < 1 || app5_title.length > 100 ||
-        (app5_text && (typeof app5_text !== 'string' || app5_text.length < 1 || app5_text.length > 1000))) {
+        typeof image_name !== 'string' || image_name.length < 1 || image_name.length > 100 || /\s/.test(image_name) ||
+        (typeof base64Image !== 'string' || base64Image.length < 1024 || base64Image.length > 131072)) {
         return res.status(400).json({ error: 'Invalid input.' });
     }
 
     const hashedUid = hashUid(uid);
 
-    const stmt = db_for_app5.prepare('UPDATE app5 SET app5_title = ?, app5_text = ?, updated = CURRENT_TIMESTAMP WHERE id = ? AND uid = ?');
-    const result = stmt.run(app5_title, app5_text || null, id, hashedUid);
+    const stmt = db_for_app5.prepare('UPDATE app5 SET image_name = ?, base64Image = ?, updated = CURRENT_TIMESTAMP WHERE id = ? AND uid = ?');
+    const result = stmt.run(image_name, base64Image, id, hashedUid);
 
     if (result.changes > 0) {
         res.status(200).json({ message: 'Record updated successfully.' });
