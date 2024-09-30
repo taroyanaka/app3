@@ -84,7 +84,7 @@
         async function fetch_data() {
             try {
                 console.log('fetch_data');
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/ez_draw/read', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/read', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -101,7 +101,7 @@
         async function create_record() {
             try {
                 convert_data(image_name, base64Image);
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/ez_draw/create', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -127,7 +127,7 @@
                 if (confirm('更新しますか？')) {} else {
                     return;
                 }
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/ez_draw/update', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/update', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -149,7 +149,7 @@
     
         async function delete_record(id) {
             try {
-                const response = await fetch('https://cotton-concrete-catsup.glitch.me/ez_draw/delete', {
+                const response = await fetch('https://cotton-concrete-catsup.glitch.me/app5/delete', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -266,6 +266,16 @@
             // base64Imageが128kbのうちの何%かを表示
             console.log(base64Image.length / 131072 * 100 + '%');
         }
+
+        function load_image(base64Image) {
+            const img = new Image();
+            img.src = base64Image;
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
+        }
+
 </script>
 
 <style>
@@ -328,7 +338,7 @@
 			{#each web_data as item}
 				<li>
 					{item.image_name}
-					<button on:click={() => base64Image = item.base64Image}>Load</button>
+					<button on:click={() => load_image(item.base64Image)}>Load</button>
 					<!-- ログアウト状態ではupdateとdeleteは非表示 -->
 					{#if user}
 					<button on:click={() => update_record(item.id)}>Update</button>
